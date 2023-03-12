@@ -78,7 +78,6 @@ def process_basic(page_content):
         zip(titles, authors, ids, date_updated, ratings, pairings, warnings, complete, languages, word_count, chapters,
             comments, kudos, bookmarks, hits)))
 
-    print(df)
     print('Successfully processed', len(df), 'rows!')
 
     with open('SomeName.csv', 'a', encoding='utf8') as f:
@@ -105,6 +104,45 @@ def process_articles(articles, start_index=0, start_index2=1):
             raise
 
 
+def process_tags(page_content):
+    bs = BeautifulSoup(page_content, 'lxml')
+    ids = []
+    warnings = []
+    relationships = []
+    characters = []
+    freeforms = []
+    for article in bs.find_all('li', {'role': 'article'}):
+        ids.append(article.find('h4', {'class': 'heading'}).find('a').get('href')[7:])
+        warnings.append(get_tags(article, name='li', attrs={'class': 'warnings'}, use_children=False))
+
+        try:
+            relationships.append(get_tags(article, name='li', attrs={'class': 'relationships'}, use_children=False))
+        except:
+            relationships.append("")
+
+        try:
+            characters.append(get_tags(article, name='li', attrs={'class': 'characters'}, use_children=False))
+        except:
+            characters.append("")
+
+        try:
+            freeforms.append(
+                get_tags(article, name='li', attrs={'class': re.compile('freeforms*')}, use_children=False))
+        except:
+            freeforms.append("")
+
+    df = pd.DataFrame(list(
+        zip(ids, warnings, relationships, characters, freeforms)))
+    print('Successfully processed', len(df), 'rows of tags!')
+
+    with open('WorksTags.csv', 'a', encoding='utf8') as f:
+        df.to_csv(f, header=False, index=False)
+    temp = pd.read_csv('WorksTags.csv')
+    print('Now we have a total of', len(temp), 'rows of data!')
+    print('================================')
+
+
+
 def article_to_row(work_id, article, headers, start_index=1):
     bs = open_fic(work_id, headers=headers)
     publish_date = bs.find('dd', {'class': 'published'}).text
@@ -112,13 +150,20 @@ def article_to_row(work_id, article, headers, start_index=1):
     return [work_id[7:], get_tags(article), get_summary(article), publish_date, content]
 
 
-def get_tags(article):
+def get_tags(article, name='ul', attrs=None, use_children=True):
+    if attrs is None:
+        attrs = {'class': 'tags commas'}
     tags = []
-    for child in article.find('ul', {'class': 'tags commas'}).children:
-        if isinstance(child, NavigableString):
-            pass
-        else:
-            tags.append(child.text.strip())
+    if use_children:
+        for child in article.find(name, attrs).children:
+            if isinstance(child, NavigableString):
+                pass
+            else:
+                tags.append(child.text.strip())
+    else:
+        for tag in article.find_all(name, attrs):
+            tags.append(tag.text)
+
     return ', '.join(tags)
 
 
@@ -175,12 +220,17 @@ with open('SomeName.csv', 'w', encoding='utf8') as f:
     writer.writerow(header)
     # writer.writerow(header)
 
-
 header2 = ['Work ID', 'Tags', 'Summary', 'Publish Date', 'Body']
 with open('SomeText.csv', 'w', encoding='utf8') as f:
     writer = csv.writer(f)
     writer.writerow(header2)
     # writer.writerow(header)
+
+header3 = ['Work ID', 'Warnings', 'Relationships', 'Characters', 'Other']
+with open('WorksTags.csv', 'w', encoding='utf8') as f:
+    writer = csv.writer(f)
+    writer.writerow(header3)
+
 
 # Once all the search pages are saved in SomeContent, run this
 totalPages = 1
@@ -192,6 +242,7 @@ for i in range(1, totalPages + 1):
         page = f.read()
         process_basic(page)  # get basic metrics from search page
         bs = BeautifulSoup(page, 'lxml')
+        process_tags(page)
         l_articles_on_page = bs.find_all('li', {'role': 'article'})
         if ix != 0:
             process_articles(articles=l_articles_on_page, start_index=ix, start_index2=1)
