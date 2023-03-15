@@ -210,32 +210,32 @@ def open_fic(work_id, headers):
 
 url = "https://archiveofourown.org/tags/Star%20Wars%20-%20All%20Media%20Types/works?commit=Sort+and+Filter&include_work_search%5Brating_ids%5D%5B%5D=10&work_search%5Bcomplete%5D=&work_search%5Bcrossover%5D=&work_search%5Bdate_from%5D=&work_search%5Bdate_to%5D=&work_search%5Bexcluded_tag_names%5D=&work_search%5Blanguage_id%5D=&work_search%5Bother_tag_names%5D=&work_search%5Bquery%5D=&work_search%5Bsort_column%5D=revised_at&work_search%5Bwords_from%5D=&work_search%5Bwords_to%5D=&page="
 
-getContent(url, start_page=1, end_page=1)
+# getContent(url, start_page=475, end_page=500)
 
 # Create a file to dump information into
-header = ['Title', 'Author', 'ID', 'Date_updated', 'Rating', 'Pairing', 'Warning', 'Complete', 'Language', 'Word_count',
-          'Num_chapters', 'Num_comments', 'Num_kudos', 'Num_bookmarks', 'Num_hits']
-with open('SomeName.csv', 'w', encoding='utf8') as f:
-    writer = csv.writer(f)
-    writer.writerow(header)
-    # writer.writerow(header)
-
-header2 = ['Work ID', 'Tags', 'Summary', 'Publish Date', 'Body']
-with open('SomeText.csv', 'w', encoding='utf8') as f:
-    writer = csv.writer(f)
-    writer.writerow(header2)
-    # writer.writerow(header)
-
-header3 = ['Work ID', 'Warnings', 'Relationships', 'Characters', 'Other']
-with open('WorksTags.csv', 'w', encoding='utf8') as f:
-    writer = csv.writer(f)
-    writer.writerow(header3)
+# header = ['Title', 'Author', 'ID', 'Date_updated', 'Rating', 'Pairing', 'Warning', 'Complete', 'Language', 'Word_count',
+#           'Num_chapters', 'Num_comments', 'Num_kudos', 'Num_bookmarks', 'Num_hits']
+# with open('SomeName.csv', 'w', encoding='utf8') as f:
+#     writer = csv.writer(f)
+#     writer.writerow(header)
+#     # writer.writerow(header)
+#
+# header2 = ['Work ID', 'Tags', 'Summary', 'Publish Date', 'Body']
+# with open('SomeText.csv', 'w', encoding='utf8') as f:
+#     writer = csv.writer(f)
+#     writer.writerow(header2)
+#     # writer.writerow(header)
+#
+# header3 = ['Work ID', 'Warnings', 'Relationships', 'Characters', 'Other']
+# with open('WorksTags.csv', 'w', encoding='utf8') as f:
+#     writer = csv.writer(f)
+#     writer.writerow(header3)
 
 
 # Once all the search pages are saved in SomeContent, run this
-totalPages = 1
+totalPages = 100
 ix = 0
-for i in range(1, totalPages + 1):
+for i in range(52, totalPages + 1):
     pageName = "./SomeContent/" + str(i) + ".html"
     with open(pageName, mode='r', encoding='utf8') as f:
         print('========We are opening page', i, '========')
