@@ -73,7 +73,7 @@ def process_landing_page_article(article):
     :return:row: A list of lists
     """
     row = []
-
+    article = BeautifulSoup(article, 'lxml')
     title = article.find('h4', {'class': 'heading'}).find('a').text
     try:
         author = article.find('a', {'rel': 'author'}).text
@@ -128,7 +128,7 @@ def get_article_work_id(article_soup):
     :param article_soup: T
     :return:
     """
-
+    article_soup = BeautifulSoup(article_soup, 'lxml')
     return article_soup.find('h4', {'class': 'heading'}).find('a').get('href')
 
 
@@ -151,6 +151,7 @@ all_fiction_soups = all_article_work_ids.map(get_fiction_soup)
 
 
 def get_publish_date(fiction_soup):
+    fiction_soup = BeautifulSoup(fiction_soup, 'lxml')
     return fiction_soup.find('dd', {'class': 'published'}).text
 
 
@@ -158,6 +159,7 @@ all_publish_dates = all_fiction_soups.map(get_publish_date)
 
 
 def get_fiction_content(fiction_soup):
+    fiction_soup = BeautifulSoup(fiction_soup, 'lxml')
     return fiction_soup.find('div', {'id': 'chapters'}).text.strip()
 
 
@@ -165,6 +167,7 @@ all_fiction_content = all_fiction_soups.map(get_fiction_content)
 
 
 def get_tags(fiction_soup):
+    fiction_soup = BeautifulSoup(fiction_soup, 'lxml')
     tags = []
     for child in fiction_soup.find('ul', {'class': 'tags commas'}).children:
         if isinstance(child, NavigableString):
@@ -178,6 +181,7 @@ all_tags = all_fiction_soups.map(get_tags)
 
 
 def get_summary(fiction_soup):
+    fiction_soup = BeautifulSoup(fiction_soup, 'lxml')
     try:
         out = fiction_soup.find('blockquote', {'class': 'userstuff summary'}).text.strip()
         return out
