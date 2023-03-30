@@ -206,4 +206,5 @@ def get_rows(rdd1, rdd2, rdd3, rdd4, rdd5):
     return result
 
 
-
+rows = get_rows(all_article_work_ids, all_publish_dates, all_fiction_content, all_tags, all_summaries)
+print(rows.take(5))
