@@ -1,0 +1,222 @@
+---
+title: "Project Simple Run"
+author: "Paul Hwang"
+date: "2023-03-29"
+output: html_document
+---
+
+
+```{r}
+library(dplyr)
+library(data.table)
+library(ggplot2)
+```
+
+
+```{r}
+sw <- fread("/Users/paulhwang/Desktop/Distributed Computing/Project1/MetricData.csv")
+```
+
+```{r}
+sw1 <- sw %>% select(ID, Num_kudos, Num_bookmarks, Num_hits) %>% mutate(kudoperhit = Num_kudos/Num_hits, bmperhit = Num_bookmarks/Num_hits)
+```
+
+## Data Explorationg
+
+### 1-D
+
+
+```{r, warning=FALSE, comment=FALSE}
+## Number of hits
+ggplot(data=sw1, aes(x=Num_hits)) + geom_histogram() + 
+  labs(title = "Distribution of Hits", x = "Hits")
+
+ggplot(data=sw1, aes(x=Num_hits)) + geom_histogram() + scale_x_log10() +
+  labs(title = "Log Distribution of Hits", x = "Hits")
+
+ggplot(data=sw1, aes(x=Num_hits)) + geom_histogram() + scale_x_log10() + scale_y_log10() +
+  labs(title = "Log Distribution of Hits", x = "Hits")
+```
+
+```{r, warning=FALSE, comment=FALSE}
+## Number of kudos
+ggplot(data=sw1, aes(x=Num_kudos)) + geom_histogram() + 
+  labs(title = "Distribution of Kudos", x = "Kudos")
+
+ggplot(data=sw1, aes(x=Num_kudos)) + geom_histogram() + scale_x_log10() +
+  labs(title = "Log Distribution of Kudos", x = "Kudos")
+  
+ggplot(data=sw1, aes(x=Num_kudos)) + geom_histogram() + scale_x_log10() + scale_y_log10() +
+  labs(title = "Log-Log Distribution of Kudos", x = "Kudos")
+```
+
+
+```{r, warning=FALSE, comment=FALSE}
+## Number of bookmarks
+ggplot(data=sw1, aes(x=Num_bookmarks)) + geom_histogram() + 
+  labs(title = "Distribution of Bookmarks", x = "Bookmarks")
+
+ggplot(data=sw1, aes(x=Num_bookmarks)) + geom_histogram() + scale_x_log10() +
+  labs(title = "Log Distribution of Bookmarks", x = "Bookmarks")
+  
+ggplot(data=sw1, aes(x=Num_bookmarks)) + geom_histogram() + scale_x_log10() + scale_y_log10() +
+  labs(title = "Log-Log Distribution of Bookmarks", x = "Bookmarks")
+```
+
+### 2-D
+
+```{r, warning=FALSE, comment=FALSE}
+## Hits and kudos
+ggplot(data = sw1, aes(x=Num_kudos, y=Num_hits)) + geom_point(alpha = 0.2) + 
+  geom_smooth() + labs(title = "Scatterplot of Hits and Kudos", x = "Kudos", y = "Hits")
+
+ggplot(data = sw1, aes(x=Num_kudos, y=Num_hits)) + geom_point(alpha = 0.2) + 
+  geom_smooth(method = "lm", col = "red") + geom_smooth() + 
+  scale_y_log10() + scale_x_log10() + 
+  labs(title = "Scatterplot of Log Hits and Log Kudos", x = "Kudos", y = "Hits")
+```
+
+```{r, warning=FALSE, comment=FALSE}
+## Hits and bookmarks
+ggplot(data = sw1, aes(x=Num_bookmarks, y=Num_hits)) + geom_point(alpha = 0.2) + 
+  geom_smooth() + labs(title = "Scatterplot of Hits and Bookmarls", x = "Bookmarks", y = "Hits")
+
+ggplot(data = sw1, aes(x=Num_bookmarks, y=Num_hits)) + geom_point(alpha = 0.2) + 
+  geom_smooth(method = "lm", col = "red") + geom_smooth() + 
+  scale_y_log10() + scale_x_log10() + 
+  labs(title = "Scatterplot of Log Hits and Log Bookmarks", x = "Bookmarks", y = "Hits")
+```
+
+
+
+```{r, eval = FALSE, echo = FALSE}
+ggplot(data=sw1, aes(x=Num_hits)) + geom_histogram() + scale_x_log10()
+ggplot(data=sw1, aes(x=Num_kudos)) + geom_histogram() + scale_x_log10()
+
+ggplot(data = sw1, aes(x=Num_kudos, y=Num_hits)) + geom_point(alpha = 0.2) + 
+  geom_smooth() + geom_abline(slope = 10, intercept = 0, col = "red") + scale_y_log10() +
+  scale_x_log10()
+ggplot(data = sw1, aes(x=Num_kudos, y=Num_hits)) + 
+  geom_point(alpha = 0.2, shape = 21, fill = "lightblue", col = "black") +
+  coord_cartesian(xlim = c(0,2000), ylim = c(0, 50000)) + 
+  geom_abline(slope = 20, intercept = 0, col = "red")
+
+ggplot(data=sw1, aes(x=kudoperhit)) + geom_histogram()
+```
+
+```{r, eval = FALSE, echo = FALSE}
+ggplot(data=sw1, aes(x=Num_bookmarks)) + geom_histogram() + scale_x_log10() + scale_y_log10()
+
+
+ggplot(data = sw1, aes(x=Num_bookmarks, y=Num_hits)) + geom_point(alpha = 0.2) + geom_smooth() + scale_x_log10()
+ggplot(data = sw1, aes(x=Num_bookmarks, y=Num_hits)) + 
+  geom_point(alpha = 0.2, shape = 21, fill = "lightblue", col = "black") +
+  coord_cartesian(xlim = c(0,500), ylim = c(0, 50000)) + 
+  geom_abline(slope = 10, intercept = 0, col = "red")
+ggplot(data=sw1, aes(x=bmperhit)) + geom_histogram()
+```
+
+```{r, eval = FALSE, echo = FALSE}
+sw2 = sw1 %>% filter(kudoperhit > 0.1)
+sw3 = sw1 %>% filter(kudoperhit > 0.05)
+
+dim(sw1)
+dim(sw2)
+dim(sw3)
+
+
+```
+
+### Random Exploration
+
+
+```{r, eval = FALSE, echo = FALSE}
+
+ggplot(sw2, aes(x=Num_hits)) + geom_histogram()
+ggplot(sw2, aes(x=Num_kudos)) + geom_histogram()
+ggplot(sw2, aes(x=Num_bookmarks)) + geom_histogram()
+
+
+ggplot(sw2, aes(x=kudoperhit)) + geom_histogram()
+
+ggplot(data = sw2, aes(x=Num_kudos, y=Num_hits)) + geom_point(alpha = 0.2) + 
+  geom_smooth() + geom_abline(slope = 10, intercept = 0, col = "red")
+ggplot(data = sw2, aes(x=Num_kudos, y=Num_hits)) + 
+  geom_point(alpha = 0.2, shape = 21, fill = "lightblue", col = "black") +
+  coord_cartesian(xlim = c(0,500), ylim = c(0, 5000)) + 
+  geom_abline(slope = 10, intercept = 0, col = "red") + geom_smooth(method = "lm")
+
+ggplot(data = sw3, aes(x=Num_kudos, y=Num_hits)) + geom_point(alpha = 0.2) + 
+  geom_smooth() + geom_abline(slope = 10, intercept = 0, col = "red")
+ggplot(data = sw3, aes(x=Num_kudos, y=Num_hits)) + 
+  geom_point(alpha = 0.2, shape = 21, fill = "lightblue", col = "black") +
+  coord_cartesian(xlim = c(0,1000), ylim = c(0, 10000)) + 
+  geom_abline(slope = 10, intercept = 0, col = "red") + geom_smooth(method = "lm")
+
+
+
+
+ggplot(sw2, aes(x=bmperhit)) + geom_histogram()
+
+
+ggplot(data = sw2, aes(x=Num_bookmarks, y=Num_hits)) + geom_point(alpha = 0.2) + geom_smooth()
+ggplot(data = sw2, aes(x=Num_bookmarks, y=Num_hits)) + 
+  geom_point(alpha = 0.2, shape = 21, fill = "lightblue", col = "black") +
+  coord_cartesian(xlim = c(0,50), ylim = c(0, 5000)) + 
+  geom_abline(slope = 10, intercept = 0, col = "red") + geom_smooth(method = "lm") +
+  geom_abline(slope = 40, intercept = 0, col = "green")
+ggplot(data=sw1, aes(x=bmperhit)) + geom_histogram()
+
+
+ggplot(data = sw3, aes(x=Num_bookmarks, y=Num_hits)) + geom_point(alpha = 0.2) + geom_smooth()
+ggplot(data = sw3, aes(x=Num_bookmarks, y=Num_hits)) + 
+  geom_point(alpha = 0.2, shape = 21, fill = "lightblue", col = "black") +
+  coord_cartesian(xlim = c(0,200), ylim = c(0, 10000)) + 
+  geom_abline(slope = 10, intercept = 0, col = "red") + geom_smooth(method = "lm") +
+  geom_abline(slope = 40, intercept = 0, col = "green")
+ggplot(data=sw1, aes(x=bmperhit)) + geom_histogram()
+```
+
+### Formatting
+
+```{r}
+names(sw)
+```
+
+
+```{r}
+popularity <- sw %>% select(Author, ID, Num_hits) %>% group_by(Author) %>% 
+  summarize("MinRating" = min(Num_hits), "MaxRating" = max(Num_hits), 
+         "MedRating" = median(Num_hits), "AvgRating" = mean(Num_hits))
+
+popularity_log <- sw %>% mutate("LogPop" = log(Num_hits, base = 10)) %>% 
+  select(Author, ID, LogPop) %>% mutate() %>% group_by(Author) %>% 
+  summarize("MinRating" = min(LogPop), "MaxRating" = max(LogPop), 
+         "MedRating" = median(LogPop), "AvgRating" = mean(LogPop))
+```
+
+```{r}
+ggplot(data = popularity, aes(x=AvgRating)) + geom_histogram() +scale_x_log10()
+ggplot(data = popularity, aes(x=MedRating)) + geom_histogram() +scale_x_log10()
+ggplot(data = popularity, aes(x=MinRating)) + geom_histogram() +scale_x_log10()
+ggplot(data = popularity, aes(x=MaxRating)) + geom_histogram() +scale_x_log10()
+```
+```{r}
+ggplot(data = popularity_log, aes(x=AvgRating)) + geom_histogram()
+ggplot(data = popularity_log, aes(x=MedRating)) + geom_histogram()
+ggplot(data = popularity_log, aes(x=MinRating)) + geom_histogram()
+ggplot(data = popularity_log, aes(x=MaxRating)) + geom_histogram()
+```
+
+```{r}
+write.csv(popularity, "/Users/paulhwang/Desktop/Distributed Computing/Project1/Metric.csv", 
+          row.names = FALSE)
+
+write.csv(popularity_log, "/Users/paulhwang/Desktop/Distributed Computing/Project1/LogMetric.csv", 
+          row.names = FALSE)
+```
+
+
+
+
+
