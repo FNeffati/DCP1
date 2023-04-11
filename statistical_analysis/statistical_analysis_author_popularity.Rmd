@@ -1,0 +1,112 @@
+---
+title: "Statistical Analysis of Author Popularity"
+author: "Joshua D. Ingram"
+date: "2023-04-11"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readr)
+library(tidyverse)
+
+frequency <- read_csv("/Users/joshuaingram/Main/Projects/DCP1/statistical_analysis/author_post_frequency.csv")
+frequency <- frequency[-1]
+metrics <- read_csv("/Users/joshuaingram/Main/Projects/DCP1/statistical_analysis/Metric.csv")
+colnames(metrics) <- c("author", "min_rating", "max_rating", "med_rating", "avg_rating")
+tags <- read_csv("/Users/joshuaingram/Main/Projects/DCP1/statistical_analysis/top_words.csv")
+tags <- tags[-1,]
+colnames(tags) <- c("author", "tag1", "tag2", "tag3")
+words <- read_csv("/Users/joshuaingram/Main/Projects/DCP1/statistical_analysis/Words_Auth_Stats.csv")
+colnames(words) <- c("author", "min_word_count", "max_word_count", "avg_word_count", "min_paragraph_count", "max_paragraph_count", "avg_paragraph_count")
+```
+
+## Merging Data
+
+```{r}
+authors <- merge(frequency, metrics, by = "author")
+# losing about 100-200 authors here...
+authors <- merge(authors, words, by = "author")
+authors <- merge(authors, tags, by = "author", all.x = TRUE)
+authors$log_avg_rating <- log(authors$avg_rating)
+```
+
+```{r}
+head(authors)
+```
+
+## Exploratory Data Analysis
+
+```{r}
+summary(authors)
+```
+
+
+### Metrics
+
+#### Minimum Rating
+
+#### Maximum Rating
+
+#### Median Rating
+
+#### Average Rating
+
+```{r}
+hist(authors$min_rating)
+hist(authors$max_rating)
+hist(log(authors$avg_rating))
+```
+
+### Frequency
+
+#### Weekly Posts
+
+#### Monthly Posts
+
+#### Yearly Posts
+
+#### Total Posts
+
+### Words
+
+#### Minimum Paragraph Count
+
+#### Maximum Paragraph Count
+
+#### Average Paragraph Count
+
+#### Minimum Word Count
+
+#### Maximum Word Count
+
+#### Average Word Count
+
+### Tags
+
+#### Tag 1
+
+#### Tag 2
+
+### Tag 3
+
+### Relationships
+
+```{r}
+numeric_data <- authors[,sapply(authors, is.numeric)]
+cor(numeric_data)
+```
+
+
+## Predicting Author Popularity
+
+```{r}
+# perhaps look at the top authors to figure out how the top authors differ
+authors_sub <- authors[which(authors$avg_rating > 100),]
+authors_sub[is.infinite(authors_sub$log_avg_rating), "log_avg_rating"] <- NA
+fit <- lm(log_avg_rating ~ avg_posts_year + avg_word_count + avg_paragraph_count + total_posts, data = authors_sub)
+summary(fit)
+```
+
+
+## Summary

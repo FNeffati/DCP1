@@ -1,0 +1,87 @@
+---
+title: "Distributed Computing Group Project 1 Analysis"
+author: "Joshua D. Ingram"
+date: "2023-04-03"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readr)
+library(tidyverse)
+library(lubridate)
+metrics <- read_csv("~/Downloads/MetricData.csv")
+```
+
+## Analysis of Post Frequency
+
+```{r}
+head(metrics)
+summary(metrics)
+# format data column
+metrics$Date_updated <- as.Date(metrics$Date_updated, format = "%d %B %Y")
+
+post_counts <- metrics %>% group_by(Author) %>% count(sort = TRUE)
+
+post_counts <- metrics %>% group_by(Author) %>% summarise(count = n(), average_kudos = mean(Num_kudos))
+```
+
+```{r}
+ggplot(data = metrics, aes(x = Date_updated, 
+                           y = Num_kudos)) + 
+  geom_point()
+
+ggplot(data = metrics, aes(Date_updated)) +
+    geom_freqpoly(binwidth = 300)
+```
+
+```{r}
+ggplot(data = post_counts, aes(x = count, y = average_kudos)) + 
+  geom_point()
+```
+
+```{r}
+# get total number of posts per author, average number of post per week per author, number of posts in current month/year
+
+metrics$week_num <- week(metrics$Date_updated)
+metrics$month_num <- month(metrics$Date_updated)
+metrics$year <- year(metrics$Date_updated)
+
+post_frequency <- metrics %>% select(Author, Date_updated, week_num, month_num, year)
+post_frequency <- post_frequency %>% group_by(Author, month_num, week_num, year) %>% count() %>% ungroup()
+colnames(post_frequency) <- c("author", "month_num", "week_num", "year", "count")
+post_frequency_week <- post_frequency %>% group_by(Author, week_num, year) %>% summarise(avg_week = mean(n))
+post_frequency_month <- post_frequency %>% group_by(Author, month_num, year) %>% summarise(avg_month = mean(n))
+
+# Total posts per author
+
+post_frequency_total <- post_frequency %>% group_by(author) %>% summarise(total_posts = sum(count))
+
+# Average posts per year by author
+
+post_frequency_year <- post_frequency %>% group_by(author, year) %>% summarise(sum_year = n())
+post_frequency_year <- post_frequency_year %>% group_by(author) %>% summarise(avg_posts_year = mean(sum_year))
+
+# Average posts per month by author
+post_frequency_month <- post_frequency %>% group_by(author, year, month_num) %>% summarise(sum_month = n())
+post_frequency_month <- post_frequency_month %>% group_by(author, year) %>% summarise(month_year_mean = mean(sum_month))
+post_frequency_month <- post_frequency_month %>% group_by(author) %>% summarise(avg_post_month = mean(month_year_mean))
+
+# Average posts per week by author
+post_frequency_week <- post_frequency %>% group_by(author, year, week_num) %>% summarise(sum_week = n())
+post_frequency_week <- post_frequency_week %>% group_by(author, year) %>% summarise(week_year_mean = mean(sum_week))
+post_frequency_week <- post_frequency_week %>% group_by(author) %>% summarise(avg_post_week = mean(week_year_mean))
+
+```
+
+```{r}
+author_post_frequency <- post_frequency_total
+author_post_frequency <- merge(author_post_frequency, post_frequency_year, by = "author")
+author_post_frequency <- merge(author_post_frequency, post_frequency_month, by = "author")
+author_post_frequency <- merge(author_post_frequency, post_frequency_week, by = "author")
+```
+
+```{r}
+write.csv(author_post_frequency, "/Users/joshuaingram/Main/Projects/DCP1/statistical_analysis/author_post_frequency.csv")
+```
+
