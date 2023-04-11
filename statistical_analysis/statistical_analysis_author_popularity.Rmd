@@ -12,6 +12,7 @@ library(tidyverse)
 
 frequency <- read_csv("/Users/joshuaingram/Main/Projects/DCP1/statistical_analysis/author_post_frequency.csv")
 frequency <- frequency[-1]
+colnames(frequency) <- c("author", "total_posts", "avg_posts_year", "avg_posts_month", "avg_posts_week")
 metrics <- read_csv("/Users/joshuaingram/Main/Projects/DCP1/statistical_analysis/Metric.csv")
 colnames(metrics) <- c("author", "min_rating", "max_rating", "med_rating", "avg_rating")
 tags <- read_csv("/Users/joshuaingram/Main/Projects/DCP1/statistical_analysis/top_words.csv")
@@ -46,49 +47,188 @@ summary(authors)
 
 #### Minimum Rating
 
+```{r}
+# minimum rating
+ggplot(data = authors, aes(x = min_rating)) +
+  geom_histogram()
+```
+
+```{r}
+# log minimum rating
+ggplot(data = authors, aes(x = min_rating)) +
+  geom_histogram() +
+  scale_x_log10()
+```
+
 #### Maximum Rating
 
+```{r}
+# maximum rating
+ggplot(data = authors, aes(x = max_rating)) +
+  geom_histogram()
+```
+
+```{r}
+# log maximum rating
+ggplot(data = authors, aes(x = max_rating)) +
+  geom_histogram() +
+  scale_x_log10()
+```
+
 #### Median Rating
+
+```{r}
+# median rating
+ggplot(data = authors, aes(x = med_rating)) +
+  geom_histogram()
+```
+
+```{r}
+# log median rating
+ggplot(data = authors, aes(x = med_rating)) +
+  geom_histogram() +
+  scale_x_log10()
+```
 
 #### Average Rating
 
 ```{r}
-hist(authors$min_rating)
-hist(authors$max_rating)
-hist(log(authors$avg_rating))
+# average rating
+ggplot(data = authors, aes(x = avg_rating)) +
+  geom_histogram()
+```
+
+```{r}
+# log average rating
+ggplot(data = authors, aes(x = avg_rating)) +
+  geom_histogram() +
+  scale_x_log10()
 ```
 
 ### Frequency
 
 #### Weekly Posts
 
+```{r}
+# weekly posts
+ggplot(data = authors, aes(x = avg_posts_week)) +
+  geom_histogram()
+```
+
 #### Monthly Posts
+
+```{r}
+# monthly posts
+ggplot(data = authors, aes(x = avg_posts_month)) +
+  geom_histogram()
+```
 
 #### Yearly Posts
 
+```{r}
+# yearly posts
+ggplot(data = authors, aes(x = avg_posts_year)) +
+  geom_histogram()
+```
+
 #### Total Posts
+
+```{r}
+# total posts
+ggplot(data = authors, aes(x = total_posts)) +
+  geom_histogram()
+```
 
 ### Words
 
 #### Minimum Paragraph Count
 
+```{r}
+# minimum paragraph count
+ggplot(data = authors, aes(x = min_paragraph_count)) +
+  geom_histogram()
+```
+
 #### Maximum Paragraph Count
+
+```{r}
+# maximum paragraph count
+ggplot(data = authors, aes(x = max_paragraph_count)) +
+  geom_histogram()
+```
 
 #### Average Paragraph Count
 
+```{r}
+# average paragraph count
+ggplot(data = authors, aes(x = avg_paragraph_count)) +
+  geom_histogram()
+```
+
 #### Minimum Word Count
+
+```{r}
+# minimum word count
+ggplot(data = authors, aes(x = min_word_count)) +
+  geom_histogram()
+```
+
+```{r}
+# log minimum word count
+ggplot(data = authors, aes(x = min_word_count)) +
+  geom_histogram() +
+  scale_x_log10()
+```
 
 #### Maximum Word Count
 
+```{r}
+# maximum word count
+ggplot(data = authors, aes(x = max_word_count)) +
+  geom_histogram()
+```
+
+```{r}
+# log maximum word count
+ggplot(data = authors, aes(x = max_word_count)) +
+  geom_histogram() +
+  scale_x_log10()
+```
+
 #### Average Word Count
+
+```{r}
+# average word count
+ggplot(data = authors, aes(x = avg_word_count)) +
+  geom_histogram()
+```
+
+```{r}
+# log average word count
+ggplot(data = authors, aes(x = avg_word_count)) +
+  geom_histogram() +
+  scale_x_log10()
+```
 
 ### Tags
 
 #### Tag 1
 
+```{r}
+authors %>% group_by(tag1) %>% summarise(avg_rating = mean(avg_rating), count = n())
+```
+
 #### Tag 2
 
+```{r}
+authors %>% group_by(tag2) %>% summarise(avg_rating = mean(avg_rating), count = n())
+```
+
 ### Tag 3
+
+```{r}
+authors %>% group_by(tag3) %>% summarise(avg_rating = mean(avg_rating), count = n())
+```
 
 ### Relationships
 
