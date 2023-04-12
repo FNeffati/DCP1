@@ -9,6 +9,9 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 library(readr)
 library(tidyverse)
+library(fitdistrplus)
+library(nortest)
+library(poweRlaw)
 
 frequency <- read_csv("/Users/joshuaingram/Main/Projects/DCP1/statistical_analysis/author_post_frequency.csv")
 frequency <- frequency[-1]
@@ -30,6 +33,9 @@ authors <- merge(frequency, metrics, by = "author")
 authors <- merge(authors, words, by = "author")
 authors <- merge(authors, tags, by = "author", all.x = TRUE)
 authors$log_avg_rating <- log(authors$avg_rating)
+authors <- authors[which(log(authors$avg_rating) != -Inf),]
+
+write.csv(authors, "/Users/joshuaingram/Main/Projects/DCP1/statistical_analysis/authors.csv")
 ```
 
 ```{r}
@@ -94,8 +100,8 @@ ggplot(data = authors, aes(x = med_rating)) +
 
 ```{r}
 # average rating
-ggplot(data = authors, aes(x = avg_rating)) +
-  geom_histogram()
+ggplot(data = authors[which(authors$avg_rating > 20*mean(authors$avg_rating)),], aes(x = avg_rating)) +
+  geom_histogram(bins = 100)
 ```
 
 ```{r}
@@ -104,6 +110,46 @@ ggplot(data = authors, aes(x = avg_rating)) +
   geom_histogram() +
   scale_x_log10()
 ```
+
+```{r}
+# Fitting a log-normal distribution
+mu_hat <- mean(log(authors$avg_rating))
+sd_hat <- sd(log(authors$avg_rating))
+
+ks.test(authors$avg_rating, "plnorm", meanlog = mu_hat, sdlog = sd_hat)
+dlnorm(authors$avg_rating, meanlog = mu_hat, sdlog = sd_hat)
+```
+```{r}
+x <- seq(0, max(authors$avg_rating), length = 1000)
+fit_params <- fitdistr(authors$avg_rating, "lognormal")
+
+fit <- dlnorm(x, fit_params$estimate["meanlog"], fit_params$estimate["sdlog"])
+
+plot(x, fit, typle = "l", ylab = "Density", xlab = "X")
+```
+```{r}
+ggplot(data = authors, aes(x = log(avg_rating))) + 
+  geom_histogram(aes(y = ..density..), bins = 30, fill = "lightblue", color = "black") + 
+  labs(x = "log(Surface Flux)", y = "Count", title = "Distribution of Beta Ceti Line Surface Fluxes", subtitle = "HST STIS Coadded Data") + 
+  theme_bw() +
+  stat_function(fun = dlnorm,
+                args = list(meanlog = mean(log(authors$avg_rating)),
+                            sdlog = sd(log(authors$avg_rating))),
+                col = "green",
+                size = 2)
+```
+```{r}
+ggplot(data = authors, aes(x = log(avg_rating))) + 
+  geom_histogram(aes(y = ..density..), bins = 25, fill = "lightblue", color = "black") + 
+  labs(x = "Radial Velocity", y = "Count") + 
+  theme_bw() +
+  stat_function(fun = dnorm,
+                 args = list(mean = mean(log(authors$avg_rating)),
+                             sd = sd(log(authors$avg_rating))),
+                 col = "blue",
+                 size = 2) + theme(text = element_text(size=12))
+```
+
 
 ### Frequency
 
@@ -128,7 +174,10 @@ ggplot(data = authors, aes(x = avg_posts_month)) +
 ```{r}
 # yearly posts
 ggplot(data = authors, aes(x = avg_posts_year)) +
-  geom_histogram()
+  geom_histogram(bins = 50) +
+  labs(x = "Average Posts per Year", y = "Count", title = "Distribution of Author Yearly Posts") +
+  theme_bw() +
+  theme(text = element_text(size = 20))
 ```
 
 #### Total Posts
@@ -136,7 +185,10 @@ ggplot(data = authors, aes(x = avg_posts_year)) +
 ```{r}
 # total posts
 ggplot(data = authors, aes(x = total_posts)) +
-  geom_histogram()
+  geom_histogram(bins = 75) +
+  labs(x = "Total Posts", y = "Count", title = "Distribution of Author Total Posts") +
+  theme_bw() +
+  theme(text = element_text(size = 20))
 ```
 
 ### Words
@@ -200,14 +252,18 @@ ggplot(data = authors, aes(x = max_word_count)) +
 ```{r}
 # average word count
 ggplot(data = authors, aes(x = avg_word_count)) +
-  geom_histogram()
+  geom_histogram(bins = 75) +
+  labs(x = "Average Word Count", y = "Count", title = "Distribution of Average Story Word Count") +
+  theme_bw() +
+  theme(text = element_text(size = 20))
 ```
 
 ```{r}
 # log average word count
 ggplot(data = authors, aes(x = avg_word_count)) +
   geom_histogram() +
-  scale_x_log10()
+  scale_x_log10() +
+  scale_y_log10()
 ```
 
 ### Tags
@@ -250,3 +306,17 @@ summary(fit)
 
 
 ## Summary
+
+```{r}
+mean(authors$avg_rating)
+
+# create bar plot for 5 groupings of story length
+summary(authors$avg_rating)
+
+authors %>% group_by(Quartile = ntile(avg_word_count, 6)) %>% 
+  summarise(lower_val = min(avg_word_count), mean_avg_rating = mean(avg_rating))
+
+authors %>% group_by(Quartile = ntile(total_posts, 10)) %>% 
+  summarise(lower_val = min(total_posts), mean_avg_rating = mean(avg_rating))
+```
+
