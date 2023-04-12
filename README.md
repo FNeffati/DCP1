@@ -48,4 +48,14 @@ Using the BeautifulSoup4 webscraper, we collected data on the AO3 General Audien
 
 ## About this Repository
 
-This repository is broken up into folders based on their 
+This repository is broken up into folders based on focus.
+
+*analysis* - Files focused on analyzing and visualing data. Some data munging.
+
+*data* - Data files.
+
+*data_munging* - Data munging files.
+
+*documentation* - PDFs, slides, logbook, etc.
+
+*webscraper* - Webscraper code for data collection.
