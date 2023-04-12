@@ -25,6 +25,19 @@ sw1 <- sw %>% select(ID, Num_kudos, Num_bookmarks, Num_hits) %>% mutate(kudoperh
 
 ### 1-D
 
+```{r}
+quantile(sw1$Num_hits, 0.25)
+quantile(sw1$Num_hits, 0.75)
+
+for (i in 1:9){
+  print(quantile(sw1$Num_hits, i/10))
+}
+
+max(sw1$Num_hits)
+
+mean(sw1$Num_hits)
+```
+
 
 ```{r, warning=FALSE, comment=FALSE}
 ## Number of hits
@@ -37,6 +50,11 @@ ggplot(data=sw1, aes(x=Num_hits)) + geom_histogram() + scale_x_log10() +
 ggplot(data=sw1, aes(x=Num_hits)) + geom_histogram() + scale_x_log10() + scale_y_log10() +
   labs(title = "Log Distribution of Hits", x = "Hits")
 ```
+
+```{r}
+quantile(sw1$Num_hits, 0.75)
+```
+
 
 ```{r, warning=FALSE, comment=FALSE}
 ## Number of kudos
@@ -183,6 +201,10 @@ ggplot(data=sw1, aes(x=bmperhit)) + geom_histogram()
 names(sw)
 ```
 
+```{r}
+
+```
+
 
 ```{r}
 popularity <- sw %>% select(Author, ID, Num_hits) %>% group_by(Author) %>% 
@@ -206,6 +228,12 @@ ggplot(data = popularity_log, aes(x=AvgRating)) + geom_histogram()
 ggplot(data = popularity_log, aes(x=MedRating)) + geom_histogram()
 ggplot(data = popularity_log, aes(x=MinRating)) + geom_histogram()
 ggplot(data = popularity_log, aes(x=MaxRating)) + geom_histogram()
+
+
+ggplot() + geom_density(data = popularity_log, aes(x=AvgRating), col = "blue") +
+  geom_density(data = popularity_log, aes(x=MedRating), col = "red") +
+  geom_density(data = popularity_log, aes(x=MinRating), col = "green") +
+  geom_density(data = popularity_log, aes(x=MaxRating), col = "black")
 ```
 
 ```{r}
@@ -217,6 +245,220 @@ write.csv(popularity_log, "/Users/paulhwang/Desktop/Distributed Computing/Projec
 ```
 
 
+## Looking at predictions of catboost
+
+```{r}
+res <- fread("/Users/paulhwang/Desktop/Distributed Computing/Project1/predictions.csv")
+```
+
+```{r}
+names(res)
+```
+
+
+```{r}
+quantile(res$pred_rating, 0.75)
+```
+
+
+```{r}
+pt1 <- res %>% select(total_posts, avg_posts_year, avg_word_count, 
+               avg_paragraph_count, pred_rating) %>% 
+  group_by(total_posts) %>% 
+  summarize("rating_beh" = mean(pred_rating))
+
+pt2 <- res %>% select(total_posts, avg_posts_year, avg_word_count, 
+               avg_paragraph_count, pred_rating) %>% 
+  group_by(avg_posts_year) %>% 
+  summarize("rating_beh" = mean(pred_rating))
+
+pt3 <- res %>% select(total_posts, avg_posts_year, avg_word_count, 
+               avg_paragraph_count, pred_rating) %>% 
+  group_by(avg_word_count) %>% 
+  summarize("rating_beh" = mean(pred_rating))
+
+pt4 <- res %>% select(total_posts, avg_posts_year, avg_word_count, 
+               avg_paragraph_count, pred_rating) %>% 
+  group_by(avg_paragraph_count) %>% 
+  summarize("rating_beh" = mean(pred_rating))
+```
+
+```{r}
+pt1
+pt2
+pt3
+pt4
+```
+
+
+```{r}
+ggplot(data = pt1, aes(x=total_posts, y=rating_beh)) + geom_point() + scale_x_log10()
+ggplot(data = pt2, aes(x=avg_posts_year, y=rating_beh)) + geom_point() + scale_x_log10()
+ggplot(data = pt3, aes(x=avg_word_count, y=rating_beh)) + geom_point() + scale_x_log10()
+ggplot(data = pt4, aes(x=avg_paragraph_count, y=rating_beh)) + geom_point() + scale_x_log10()
+```
 
 
 
+```{r}
+d211 <- res %>% select(avg_posts_year, avg_word_count, 
+               avg_paragraph_count, pred_rating) %>% 
+  group_by(avg_posts_year, avg_word_count) %>% 
+  summarise("rating_beh" = mean(pred_rating)) %>%
+  mutate(across(c(1),factor))
+
+d212 <- res %>% select(avg_posts_year, avg_word_count, 
+               avg_paragraph_count, pred_rating) %>% 
+  group_by(avg_posts_year, avg_word_count) %>% 
+  summarise("rating_beh" = mean(pred_rating)) %>%
+  mutate(across(c(2),factor))
+
+d221 <- res %>% select(avg_posts_year, avg_word_count, 
+               avg_paragraph_count, pred_rating) %>% 
+  group_by(avg_posts_year, avg_paragraph_count) %>% 
+  summarise("rating_beh" = mean(pred_rating)) %>%
+  mutate(across(c(1),factor))
+
+d222 <- res %>% select(avg_posts_year, avg_word_count, 
+               avg_paragraph_count, pred_rating) %>% 
+  group_by(avg_posts_year, avg_paragraph_count) %>% 
+  summarise("rating_beh" = mean(pred_rating)) %>%
+  mutate(across(c(2),factor))
+
+d231 <- res %>% select(avg_posts_year, avg_word_count, 
+               avg_paragraph_count, pred_rating) %>% 
+  group_by(avg_word_count, avg_paragraph_count) %>% 
+  summarise("rating_beh" = mean(pred_rating)) %>%
+  mutate(across(c(1),factor))
+
+d232 <- res %>% select(avg_posts_year, avg_word_count, 
+               avg_paragraph_count, pred_rating) %>% 
+  group_by(avg_word_count, avg_paragraph_count) %>% 
+  summarise("rating_beh" = mean(pred_rating)) %>%
+  mutate(across(c(2),factor))
+```
+
+```{r}
+d212
+d222
+d232
+```
+
+```{r}
+ggplot(data = d211, aes(x=avg_word_count, y= rating_beh, col = avg_posts_year)) +
+  geom_point()
+
+ggplot(data = d212, aes(x=avg_posts_year, y= rating_beh, col = avg_word_count)) +
+  geom_point()
+
+ggplot(data = d221, aes(x=avg_paragraph_count, y= rating_beh, col = avg_posts_year)) +
+  geom_point()
+
+ggplot(data = d222, aes(x=avg_posts_year, y= rating_beh, col = avg_paragraph_count)) +
+  geom_point()
+
+ggplot(data = d231, aes(x=avg_word_count, y= rating_beh, col = avg_paragraph_count)) +
+  geom_point()
+
+ggplot(data = d232, aes(x=avg_paragraph_count, y= rating_beh, col = avg_word_count)) +
+  geom_point()
+```
+
+## outlier removed
+
+```{r}
+res_rm <- fread("/Users/paulhwang/Desktop/Distributed Computing/Project1/predictions_rm.csv")
+```
+
+```{r}
+pt1 <- res_rm %>% select(total_posts, avg_posts_year, avg_word_count, 
+               avg_paragraph_count, pred_rating) %>% 
+  group_by(total_posts) %>% 
+  summarize("rating_beh" = mean(pred_rating))
+
+pt2 <- res_rm %>% select(total_posts, avg_posts_year, avg_word_count, 
+               avg_paragraph_count, pred_rating) %>% 
+  group_by(avg_posts_year) %>% 
+  summarize("rating_beh" = mean(pred_rating))
+
+pt3 <- res_rm %>% select(total_posts, avg_posts_year, avg_word_count, 
+               avg_paragraph_count, pred_rating) %>% 
+  group_by(avg_word_count) %>% 
+  summarize("rating_beh" = mean(pred_rating))
+
+pt4 <- res_rm %>% select(total_posts, avg_posts_year, avg_word_count, 
+               avg_paragraph_count, pred_rating) %>% 
+  group_by(avg_paragraph_count) %>% 
+  summarize("rating_beh" = mean(pred_rating))
+```
+
+```{r}
+pt1
+pt2
+pt3
+pt4
+```
+
+```{r}
+d211 <- res_rm %>% select(avg_posts_year, avg_word_count, 
+               avg_paragraph_count, pred_rating) %>% 
+  group_by(avg_posts_year, avg_word_count) %>% 
+  summarise("rating_beh" = mean(pred_rating)) %>%
+  mutate(across(c(1),factor))
+
+d212 <- res_rm %>% select(avg_posts_year, avg_word_count, 
+               avg_paragraph_count, pred_rating) %>% 
+  group_by(avg_posts_year, avg_word_count) %>% 
+  summarise("rating_beh" = mean(pred_rating)) %>%
+  mutate(across(c(2),factor))
+
+d221 <- res_rm %>% select(avg_posts_year, avg_word_count, 
+               avg_paragraph_count, pred_rating) %>% 
+  group_by(avg_posts_year, avg_paragraph_count) %>% 
+  summarise("rating_beh" = mean(pred_rating)) %>%
+  mutate(across(c(1),factor))
+
+d222 <- res_rm %>% select(avg_posts_year, avg_word_count, 
+               avg_paragraph_count, pred_rating) %>% 
+  group_by(avg_posts_year, avg_paragraph_count) %>% 
+  summarise("rating_beh" = mean(pred_rating)) %>%
+  mutate(across(c(2),factor))
+
+d231 <- res_rm %>% select(avg_posts_year, avg_word_count, 
+               avg_paragraph_count, pred_rating) %>% 
+  group_by(avg_word_count, avg_paragraph_count) %>% 
+  summarise("rating_beh" = mean(pred_rating)) %>%
+  mutate(across(c(1),factor))
+
+d232 <- res_rm %>% select(avg_posts_year, avg_word_count, 
+               avg_paragraph_count, pred_rating) %>% 
+  group_by(avg_word_count, avg_paragraph_count) %>% 
+  summarise("rating_beh" = mean(pred_rating)) %>%
+  mutate(across(c(2),factor))
+```
+
+```{r}
+d212
+d222
+d232
+```
+
+```{r}
+ggplot(data = d211, aes(x=avg_word_count, y= rating_beh, col = avg_posts_year)) +
+  geom_point()
+
+ggplot(data = d212, aes(x=avg_posts_year, y= rating_beh, col = avg_word_count)) +
+  geom_point()
+
+ggplot(data = d221, aes(x=avg_paragraph_count, y= rating_beh, col = avg_posts_year)) +
+  geom_point()
+
+ggplot(data = d222, aes(x=avg_posts_year, y= rating_beh, col = avg_paragraph_count)) +
+  geom_point()
+
+ggplot(data = d231, aes(x=avg_word_count, y= rating_beh, col = avg_paragraph_count)) +
+  geom_point()
+
+ggplot(data = d232, aes(x=avg_paragraph_count, y= rating_beh, col = avg_word_count)) +
+  geom_point()
+```
